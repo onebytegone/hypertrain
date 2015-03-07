@@ -1,0 +1,10 @@
+<?php
+
+
+/**
+ * This is the key used to sign the JWTs.
+ */
+define('TOKEN_SECRET', '');
+
+
+
