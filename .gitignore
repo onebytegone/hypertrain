@@ -1,7 +1,5 @@
 .DS_Store
 
-environment.php
-vendor
-
+node_modules
 
 
