@@ -1,5 +1,6 @@
 var express = require('express'),
-    config = require("config");
+    config = require("config"),
+    game = require("../model/game");
 
 var router = express.Router();
 
@@ -11,18 +12,30 @@ router.use(function timeLog(req, res, next) {
 
 // define the home page route
 router.get('/', function(req, res) {
-     res.send('Birds home page');
+   res.send('Birds home page');
 })
 
 // define the about route
 router.get('/about', function(req, res) {
-     res.send('About birds');
+   res.send('About birds');
 })
+
+router.get('/game', function (req, res) {
+   var ident = null;
+   if (req.jwtSession.game) {
+      ident = req.jwtSession.game.ident;
+   }
+
+   var gameModel = game.fetchGame(ident);
+
+   res.send(gameModel.ident);
+});
 
 // define a test JWT route
 router.get('/jwt', function(req, res) {
    // this will be stored in redis
-   req.jwtSession.user = { 'color': 'blue' };
+   req.jwtSession.game = {};
+   req.jwtSession.game.ident = 'thisisanident';
 
    // this will be attached to the JWT
    var claims = {

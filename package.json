@@ -4,7 +4,7 @@
   "description": "A lightcycle game playground for simple AIs.",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha ./tests/*"
   },
   "repository": {
     "type": "git",
@@ -21,7 +21,8 @@
     "express": "^4.12.2",
     "jwt-redis-session": "^1.0.0",
     "redis": "^0.12.1",
-    "redis-server": "0.0.1"
+    "redis-server": "0.0.1",
+    "underscore": "^1.8.2"
   },
   "devDependencies": {
     "expect.js": "^0.3.1",
