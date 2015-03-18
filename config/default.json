@@ -1,0 +1,7 @@
+{
+   "jwt": {
+      "secret": "#####",
+      "issuer": "Hypertrain",
+      "audience": "hypertrain-server"
+   }
+}
