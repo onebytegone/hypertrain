@@ -1,29 +1,35 @@
 var redis = require("redis").createClient(),
     _ = require("underscore");
 
+var board = require('./board');
+
 var Game = {};
 
-Game.fetchGame = function(ident) {
-   if (!ident) {
-      ident = this.generateIdentifier();
-   }
-
-   var gameModel = this.loadGame(ident);
-
-   console.log('Game ident: '+gameModel.ident);
-
-   return gameModel;
+Game.config = {};
+Game.config.board = {
+   'width': 15,
+   'height': 15
 };
 
-Game.loadGame = function(ident) {
+/**
+ * Fetches an existing game from the database. If it
+ * doesn't exist, it will create a new one.
+ *
+ * @param ident string - identifier for the game
+ * @param callback function - passed the game model array
+ */
+Game.fetchGame = function(ident, callback) {
    var gameModel = {
-      'ident': ident,
+      'ident': ident ? ident : Game.generateIdentifier(),
       'players': [],
       'turn': -1,
       'complete': false,
       'winner': null,
+      'board': [],
+      'players': []
    };
 
+   // Load game data
    redis.get(this.dbKey(gameModel.ident), function(err, reply) {
       // reply is null when the key is missing. (i.e. new game)
       if (reply) {
@@ -33,10 +39,12 @@ Game.loadGame = function(ident) {
                gameModel[key] = value;
             }
          });
+      }else {
+         gameModel.board = board.generateBoard(Game.config.board.width, Game.config.board.height);
       }
-   });
 
-   return gameModel;
+      callback(gameModel);
+   });
 };
 
 Game.generateIdentifier = function() {

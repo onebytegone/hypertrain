@@ -1,21 +1,13 @@
 
 var express = require('express'),
-    JWTRedisSession = require("jwt-redis-session"),
+    bodyParser = require('body-parser'),
     redis = require("redis"),
     config = require("config");
 
 var redisClient = redis.createClient(),
     app = express();
 
-app.use(JWTRedisSession({
-   client: redisClient,
-   secret: config.get('jwt.secret'),
-   keyspace: "sess:",
-   maxAge: 86400,
-   algorithm: "HS256",
-   requestKey: "jwtSession",
-   requestArg: "jwtToken"
-}));
+app.use(bodyParser.json());
 
 app.get('/', function (req, res) {
    res.send('Hello World!');

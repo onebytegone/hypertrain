@@ -1,4 +1,5 @@
 var express = require('express'),
+    jwt = require("jwt-simple"),
     config = require("config"),
     game = require("../model/game");
 
@@ -21,32 +22,35 @@ router.get('/about', function(req, res) {
 })
 
 router.get('/game', function (req, res) {
+   console.log(req.body);
+
    var ident = null;
-   if (req.jwtSession.game) {
-      ident = req.jwtSession.game.ident;
+   if (req.body.token) {
+      var jwtData = jwt.decode(req.body.token);
+      ident = jwtData.ident;
    }
 
-   var gameModel = game.fetchGame(ident);
-
-   res.send(gameModel.ident);
-});
-
-// define a test JWT route
-router.get('/jwt', function(req, res) {
-   // this will be stored in redis
-   req.jwtSession.game = {};
-   req.jwtSession.game.ident = 'thisisanident';
-
-   // this will be attached to the JWT
-   var claims = {
-      iss: config.get('jwt.issuer'),
-      aud: config.get('jwt.audience')
-   };
-
-   // Create JWT and add to reponse
-   req.jwtSession.create(claims, function(error, token){
-      res.json({ token: token });
+   game.fetchGame(ident, function(gameModel) {
+      var jwtData = {
+         'ident': gameModel.ident
+      };
+      var pkg = {
+         'map': gameModel.board
+      };
+      sendReply(res, pkg, jwtData);
    });
+
 });
+
+var sendReply = function(res, payload, jwtData) {
+   var token = jwt.encode(jwtData, config.get('jwt.secret'))
+
+   res.json({
+      'meta': {
+         'token': token
+      },
+      'payload': payload
+   });
+};
 
 module.exports = router;
