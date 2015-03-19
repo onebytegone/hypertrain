@@ -17,11 +17,11 @@ router.get('/', function(req, res) {
 })
 
 // define the about route
-router.get('/about', function(req, res) {
-   res.send('About birds');
+router.get('/move', function(req, res) {
+   res.send('Move');
 })
 
-router.get('/game', function (req, res) {
+router.get('/board', function (req, res) {
    console.log(req.body);
 
    var ident = null;
