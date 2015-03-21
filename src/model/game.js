@@ -26,7 +26,8 @@ Game.fetchGame = function(ident, callback) {
       'complete': false,
       'winner': null,
       'board': [],
-      'players': []
+      'players': [],
+      'date': new Date().getTime()
    };
 
    // Load game data
