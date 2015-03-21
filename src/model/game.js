@@ -35,8 +35,9 @@ Game.fetchGame = function(ident, callback) {
    redis.get(this.dbKey(gameModel.ident), function(err, reply) {
       // reply is null when the key is missing. (i.e. new game)
       if (reply) {
+         var formatted = JSON.parse(reply);
          // copy saved values over the default game states
-         _.each(reply, function (value, key) {
+         _.each(formatted, function (value, key) {
             if (value) {
                gameModel[key] = value;
             }
@@ -53,7 +54,7 @@ Game.fetchGame = function(ident, callback) {
 
 Game.saveGame = function(gameModel) {
    console.log(gameModel);
-   redis.set(this.dbKey(gameModel.ident),  JSON.stringify(gameModel));
+   redis.set(this.dbKey(gameModel.ident), JSON.stringify(gameModel));
 };
 
 Game.generateIdentifier = function() {
