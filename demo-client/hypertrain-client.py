@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2.7
 # Copyright 2015 Ethan Smith
 
 import sys
@@ -15,13 +15,8 @@ if len(args) < 2:
 server_url = args[1]
 
 def sendMessage(token, command):
-   values = {
-      'command' : command,
-      'token' : token
-   }
-
-   data = urllib.urlencode(values)
-   req = urllib2.Request(server_url, data)
+   req = urllib2.Request(server_url)
+   req.add_header('token', token)
    response = urllib2.urlopen(req)
    data = response.read()
    print data
@@ -29,6 +24,6 @@ def sendMessage(token, command):
 
 print "Using URL: "+server_url
 print "Sending sync command..."
-response = sendMessage('', 'sync')
-token = response['token']
+response = sendMessage('', '')
+token = response['meta']['token']
 print "Received token: "+token
