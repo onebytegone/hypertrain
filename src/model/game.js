@@ -1,5 +1,6 @@
 var redis = require("redis").createClient(),
-    _ = require("underscore");
+    _ = require("underscore"),
+    debug = require('debug')('game');
 
 var board = require('./board');
 
@@ -41,11 +42,18 @@ Game.fetchGame = function(ident, callback) {
             }
          });
       }else {
+         // Create new game
          gameModel.board = board.generateBoard(Game.config.board.width, Game.config.board.height);
+         Game.saveGame(gameModel);
       }
 
       callback(gameModel);
    });
+};
+
+Game.saveGame = function(gameModel) {
+   console.log(gameModel);
+   redis.set(this.dbKey(gameModel.ident),  JSON.stringify(gameModel));
 };
 
 Game.generateIdentifier = function() {
@@ -59,6 +67,33 @@ Game.generateIdentifier = function() {
 
 Game.dbKey = function (ident, key) {
    return 'game:' + ident + ( key ? ':'+key : '');
+};
+
+Game.allGames = function(callback) {
+   debug('starting listing all games');
+
+   redis.keys('*', function(err, replies) {
+      var gameList = [];
+
+      if (replies) {
+         redis.mget(replies, function (err, reply) {
+            var games = _.map(reply, function (item) {
+               var game = JSON.parse(item);
+               debug(game);
+
+               return {
+                  'ident': game.ident,
+                  'complete': game.complete,
+                  'date': game.date,
+               };
+            });
+
+            callback(games);
+         });
+      };
+   });
+
+   debug('done querying for all games');
 };
 
 module.exports = Game;
