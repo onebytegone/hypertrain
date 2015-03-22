@@ -13,11 +13,8 @@ app.get('/', function (req, res) {
    res.send('&lt;all good&gt;');
 });
 
-var ai = require('./src/routes/ai');
-app.use('/ai', ai);
-
-var spectator = require('./src/routes/spectator');
-app.use('/spectator', spectator);
+var v1 = require('./versions/v1');
+app.use('/v1', v1);
 
 app.listen(3000);
 console.log('listening on port 3000');
