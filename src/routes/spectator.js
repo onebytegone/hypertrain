@@ -11,39 +11,25 @@ router.get('/', function(req, res) {
    game.allGames(function (games) {
       res.jsonp(games);
    });
-})
+});
 
 // define the game page route
 router.get('/:gameident', function(req, res) {
    game.fetchGame(req.gameident, function(gameModel) {
-      res.jsonp({
-         'meta': {
-            'code': 200
-         },
-         'payload': {
-            'game': gameModel
-         }
-      });
+      res.jsonp(gameModel);
    });
-})
+});
 
 // route middleware to validate :gameident
 router.param('gameident', function(req, res, next, gameident) {
    debug('validating gameident: ['+gameident+']');
 
-   if (gameident.match(/[[:xdigit:]]*/g)) {
+   if (gameident.match(/[0-9a-z\-]+/gi)) {
       req.gameident = gameident;
       next();
    }else {
       debug('gameident ['+gameident+'] is not valid');
-
-      res.jsonp({
-         'meta': {
-            'error': 'invalid game identifier',
-            'code': 400
-         },
-         'payload': {}
-      });
+      res.status(400).jsonp({ error: 'invalid game identifier: ['+gameident+']' });
    }
 });
 
