@@ -14,26 +14,15 @@ Game.config.board = {
 
 /**
  * Fetches an existing game from the database. If it
- * doesn't exist, it will create a new one.
+ * doesn't exist, value sent to callback will be false.
  *
  * @param ident string - identifier for the game
- * @param callback function - passed the game model array
+ * @param callback function - passed the game model array. passed false if game doesn't exist
  */
 Game.fetchGame = function(ident, callback) {
-   var gameModel = {
-      'ident': ident ? ident : Game.generateIdentifier(),
-      'players': [],
-      'turn': -1,
-      'complete': false,
-      'winner': null,
-      'board': [],
-      'players': [],
-      'date': new Date().getTime()
-   };
-
-   // Load game data
-   redis.get(this.dbKey(gameModel.ident), function(err, reply) {
-      // reply is null when the key is missing. (i.e. new game)
+   // request game data
+   redis.get(this.dbKey(ident), function(err, reply) {
+      var gameModel = {};
       if (reply) {
          var formatted = JSON.parse(reply);
          // copy saved values over the default game states
@@ -43,13 +32,39 @@ Game.fetchGame = function(ident, callback) {
             }
          });
       }else {
-         // Create new game
-         gameModel.board = board.generateBoard(Game.config.board.width, Game.config.board.height);
-         Game.saveGame(gameModel);
+         // reply is null when the key is missing. (i.e. game doesn't exist)
+         gameModel = false;
       }
 
       callback(gameModel);
    });
+};
+
+/**
+ * Creates a new game.
+ *
+ * @param ident string - identifier for the game
+ * @param callback function - passed the game model array. passed false if game doesn't exist
+ */
+Game.createGame = function(callback) {
+   var gameModel = {
+      'ident': Game.generateIdentifier(),
+      'players': [],
+      'turn': -1,
+      'complete': false,
+      'winner': null,
+      'board': [],
+      'players': [],
+      'date': new Date().getTime()
+   };
+
+   // Create new game
+   gameModel.board = board.generateBoard(Game.config.board.width, Game.config.board.height);
+   Game.saveGame(gameModel);
+
+   // While we could return `gameModel`, using a
+   // callback keeps the same form as fetch game.
+   callback(gameModel);
 };
 
 Game.saveGame = function(gameModel) {

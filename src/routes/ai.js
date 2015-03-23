@@ -21,9 +21,14 @@ router.get('/move', function(req, res) {
    res.send('Move');
 })
 
-router.get('/board', function (req, res) {
-   console.log(req.body);
 
+router.get('/dev-new-game', function (req, res) {
+   game.createGame(function (gameModel) {
+      sendReply(res, gameModel, []);
+   });
+});
+
+router.get('/board', function (req, res) {
    var ident = null;
    if (req.body.token) {
       var jwtData = jwt.decode(req.body.token);
@@ -31,13 +36,17 @@ router.get('/board', function (req, res) {
    }
 
    game.fetchGame(ident, function(gameModel) {
-      var jwtData = {
-         'ident': gameModel.ident
-      };
-      var pkg = {
-         'map': gameModel.board
-      };
-      sendReply(res, pkg, jwtData);
+      if (gameModel) {
+         var jwtData = {
+            'ident': gameModel.ident
+         };
+         var pkg = {
+            'map': gameModel.board
+         };
+         sendReply(res, pkg, jwtData);
+      }else {
+         sendError(res, 400, 'no game with given identifier found');
+      }
    });
 
 });
@@ -52,5 +61,16 @@ var sendReply = function(res, payload, jwtData) {
       'payload': payload
    });
 };
+
+var sendError = function (res, code, errorMsg) {
+   res.status(code).jsonp({
+      'meta': {
+         'error': code,
+         'reason': errorMsg
+      },
+      'payload': {}
+   });
+}
+
 
 module.exports = router;
