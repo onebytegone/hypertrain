@@ -16,7 +16,11 @@ router.get('/', function(req, res) {
 // define the game page route
 router.get('/:gameident', function(req, res) {
    game.fetchGame(req.gameident, function(gameModel) {
-      res.jsonp(gameModel);
+      if (gameModel) {
+         res.jsonp(gameModel);
+      }else {
+         res.status(400).jsonp({ error: 'invalid game identifier: ['+req.gameident+']' });
+      }
    });
 });
 
