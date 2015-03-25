@@ -13,17 +13,29 @@ if len(args) < 2:
    exit()
 
 server_url = args[1]
+teamname = 'demo-client'
 
-def sendMessage(token, command):
-   req = urllib2.Request(server_url)
+def sendMessage(server, method, command, token):
+   url = server+command
+   print "Request: " + method + " " + url
+   req = urllib2.Request(url)
    req.add_header('token', token)
+   req.get_method = lambda: method
    response = urllib2.urlopen(req)
    data = response.read()
-   print data
    return json.loads(data)
 
 print "Using URL: "+server_url
-print "Sending sync command..."
-response = sendMessage('', '')
-token = response['meta']['token']
+
+# Register for token
+print "Sending register command..."
+response = sendMessage(server_url, 'POST', '/v1/ai/register/' + teamname, '')
+token = response['payload']['token']
+print response
 print "Received token: "+token
+
+
+# Unregister teamname
+print "Sending unregister command..."
+response = sendMessage(server_url, 'DELETE', '/v1/ai/register', token)
+print response
