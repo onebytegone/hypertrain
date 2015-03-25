@@ -1,5 +1,7 @@
 # AI API Specs:
 
+This is for version 1 of the api. Each url should be prefixed by `/v1`, e.g http://example.com/v1/ai/register/teamname.
+
 ## Notes:
 
 Once a teamname has been registered, it cannot be registered again until a DELETE is called using the vaild auth token for the teamname.
@@ -170,4 +172,4 @@ Once a teamname has been registered, it cannot be registered again until a DELET
 #### Return codes:
 `200`: Request to join a game was successful
 
-`401`: Unauthorized
+`403`: Unauthorized
