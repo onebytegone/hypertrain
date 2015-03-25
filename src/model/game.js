@@ -2,7 +2,9 @@ var redis = require("redis").createClient(),
     _ = require("underscore"),
     debug = require('debug')('game');
 
-var board = require('./board');
+var board = require('./board'),
+    player = require('./player'),
+    guid = require('../util/guid');
 
 var Game = {};
 
@@ -73,12 +75,7 @@ Game.saveGame = function(gameModel) {
 };
 
 Game.generateIdentifier = function() {
-   function s4() {
-      return Math.floor((1 + Math.random()) * 0x10000)
-         .toString(16)
-         .substring(1);
-   }
-   return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+   return guid();
 };
 
 Game.dbKey = function (ident, key) {
