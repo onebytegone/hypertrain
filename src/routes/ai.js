@@ -14,6 +14,45 @@ router.use(function timeLog(req, res, next) {
        next();
 })
 
+
+var requireToken = function(next) {
+   return function (req, res) {
+      var fail = function () {
+         debug('invalid token: '+req.headers.token);
+         res.status(403).jsonp({
+            meta: {
+               code: 403,
+               error: 'unauthorized'
+            },
+            payload: {}
+         });
+      };
+
+      if (req.headers.token) {
+         debug('has token: '+req.headers.token);
+         parseJWT(req.headers.token, function(tokenData) {
+            req.jwt = tokenData;
+            next(req, res);
+         }, fail);
+      }else {
+         fail();
+      }
+   };
+};
+
+var parseJWT = function (token, success, failed) {
+   var data = null;
+   try {
+      data = jwt.decode(token, config.get('jwt.secret'));
+   } catch(err) {
+      debug('bad jwt: '+token+' error: '+err);
+      failed();
+      return;
+   }
+
+   success(data);
+};
+
 // define the home page route
 router.get('/', function(req, res) {
    res.send('Birds home page');
@@ -64,41 +103,17 @@ router.post('/register/:teamname', function (req, res) {
 });
 
 
-router.delete('/register', function (req, res) {
-   if (req.headers.token) {
-      debug('Has token: '+req.headers.token);
+router.delete('/register', requireToken(function (req, res) {
+   player.archivePlayer(req.jwt.ident);
 
-      parseJWT(req.headers.token, function(jwtData) {
-         // valid jwt
-         player.archivePlayer(jwtData.ident);
+   res.status(200).jsonp({
+      meta: {
+         code: 200,
+      },
+      payload: {}
+   });
+}));
 
-         res.status(200).jsonp({
-            meta: {
-               code: 200,
-            },
-            payload: {}
-         });
-      }, function () {
-         // invalid jwt
-         res.status(400).jsonp({
-            meta: {
-               code: 400,
-               error: 'bad token'
-            },
-            payload: {}
-         });
-      });
-   }else {
-      debug('not authorized: '+req.headers.token);
-      res.status(403).jsonp({
-         meta: {
-            code: 403,
-            error: 'unauthorized'
-         },
-         payload: {}
-      });
-   }
-});
 
 // route middleware to validate :teamname
 router.param('teamname', function(req, res, next, teamname) {
@@ -165,17 +180,5 @@ var sendError = function (res, code, errorMsg) {
       'payload': {}
    });
 }
-
-var parseJWT = function (token, success, failed) {
-   var data = null;
-   try {
-      data = jwt.decode(token, config.get('jwt.secret'));
-      success(data);
-   } catch(err) {
-      debug('bad jwt: '+token);
-      failed();
-   }
-}
-
 
 module.exports = router;
