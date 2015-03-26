@@ -14,6 +14,13 @@ Game.config.board = {
    'height': 15
 };
 
+
+Game.fetchPendingGame = function(callback) {
+   redis.get(this.dbKey('pending'), function(err, reply) {
+      callback(reply);
+   });
+}
+
 /**
  * Fetches an existing game from the database. If it
  * doesn't exist, value sent to callback will be false.
@@ -63,6 +70,7 @@ Game.createGame = function(callback) {
    // Create new game
    gameModel.board = board.generateBoard(Game.config.board.width, Game.config.board.height);
    Game.saveGame(gameModel);
+   redis.set(this.dbKey('pending'), gameModel.ident);
 
    // While we could return `gameModel`, using a
    // callback keeps the same form as fetch game.
@@ -70,7 +78,6 @@ Game.createGame = function(callback) {
 };
 
 Game.saveGame = function(gameModel) {
-   console.log(gameModel);
    redis.set(this.dbKey(gameModel.ident), JSON.stringify(gameModel));
 };
 
