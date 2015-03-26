@@ -35,6 +35,14 @@ print response
 print "Received token: "+token
 
 
+# Join game
+print "Sending join command..."
+response = sendMessage(server_url, 'PUT', '/v1/ai/join', token)
+gameident = response['payload']['gameident']
+print response
+print "Joined game: "+gameident
+
+
 # Unregister teamname
 print "Sending unregister command..."
 response = sendMessage(server_url, 'DELETE', '/v1/ai/register', token)
