@@ -70,6 +70,39 @@ router.get('/dev-new-game', function (req, res) {
    });
 });
 
+
+router.put('/join', requireToken( function (req, res) {
+   game.fetchPendingGame(function(pending) {
+      var joinGame = function (gameModel) {
+         debug('Joining game: '+gameModel.ident);
+         if (gameModel) {
+            gameModel = game.addPlayer(gameModel, req.jwt.ident);
+            game.saveGame(gameModel);
+
+            res.status(200).jsonp({
+               meta: {
+                  code: 200
+               },
+               payload: {
+                  'gameident': gameModel.ident
+               }
+            });
+         }else {
+            serverError('could not join pending game');
+         }
+      };
+
+      if(pending) {
+         debug('joining existing game');
+         game.fetchGame(pending, joinGame);
+      }else {
+         debug('creating new game');
+         game.createGame(joinGame);
+      }
+   });
+}));
+
+
 router.post('/register/:teamname', function (req, res) {
    var teamname = req.params.teamname;
    player.nameIsAvailable(teamname, function (isAvailable) {
@@ -138,10 +171,12 @@ router.param('teamname', function(req, res, next, teamname) {
 
 
 router.get('/board', function (req, res) {
-   var ident = null;
+   var ident = null,
+       teamname = null;
    if (req.body.token) {
       var jwtData = jwt.decode(req.body.token);
       ident = jwtData.ident;
+      teamname = jwtData.teamname;
    }
 
    game.fetchGame(ident, function(gameModel) {
@@ -157,13 +192,12 @@ router.get('/board', function (req, res) {
          sendError(res, 400, 'no game with given identifier found');
       }
    });
-
 });
 
 var sendReply = function(res, payload, jwtData) {
    var token = jwt.encode(jwtData, config.get('jwt.secret'))
 
-   res.json({
+   res.jsonp({
       'meta': {
          'token': token
       },
@@ -178,6 +212,16 @@ var sendError = function (res, code, errorMsg) {
          'reason': errorMsg
       },
       'payload': {}
+   });
+}
+
+var serverError = function (res, msg) {
+   res.status(500).jsonp({
+      meta: {
+         code: 500,
+         error: msg
+      },
+      payload: {}
    });
 }
 

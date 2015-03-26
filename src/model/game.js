@@ -13,8 +13,16 @@ Game.config.board = {
    'width': 15,
    'height': 15
 };
+Game.config.movers = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G' ];
+Game.config.maxPlayers = function() { return Game.config.movers.length; }();
 
 
+
+/**
+ * Gets the ident for the current pending game
+
+ * @param callback function - passed the game ident. null if none pending.
+ */
 Game.fetchPendingGame = function(callback) {
    redis.get(this.dbKey('pending'), function(err, reply) {
       callback(reply);
@@ -63,7 +71,7 @@ Game.createGame = function(callback) {
       'complete': false,
       'winner': null,
       'board': [],
-      'players': [],
+      'players': {},
       'date': new Date().getTime()
    };
 
@@ -79,6 +87,29 @@ Game.createGame = function(callback) {
 
 Game.saveGame = function(gameModel) {
    redis.set(this.dbKey(gameModel.ident), JSON.stringify(gameModel));
+};
+
+
+/**
+ * Adds a new player to the given game model. This does not
+ * re-save the model.
+ *
+ * @param gameModel array
+ * @param playerIdent string - id for the player
+ */
+Game.addPlayer = function(gameModel, playerIdent) {
+   if (_.keys(gameModel.players).length+1 >= Game.config.maxPlayers) {
+       throw new Error("Too many players for this game");
+   }
+
+   var mover = Game.config.movers[_.keys(gameModel.players).length];
+   gameModel.players[playerIdent] = mover;
+
+   debug('new player has mover: '+mover);
+   debug('total players: '+_.keys(gameModel.players).length);
+   debug('player list: '+_.values(gameModel.players).join(', '));
+
+   return gameModel;
 };
 
 Game.generateIdentifier = function() {
