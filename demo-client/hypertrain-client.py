@@ -43,6 +43,12 @@ print response
 print "Joined game: "+gameident
 
 
+# Fetch board
+print "Getting game info..."
+response = sendMessage(server_url, 'GET', '/v1/ai/board/' + gameident, token)
+print response
+
+
 # Unregister teamname
 print "Sending unregister command..."
 response = sendMessage(server_url, 'DELETE', '/v1/ai/register', token)
