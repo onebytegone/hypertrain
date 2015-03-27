@@ -112,6 +112,8 @@ Once a teamname has been registered, it cannot be registered again until a DELET
 #### Return codes:
 `200`: Request successful
 
+`202`: Game has not been started yet
+
 `404`: Game with identifier not found
 
 
@@ -144,7 +146,9 @@ Once a teamname has been registered, it cannot be registered again until a DELET
 #### Return codes:
 `200`: Request to join a game was successful
 
-`306`: Waiting on turns by other players
+`202`: Game has not been started yet
+
+`202`: Waiting on turns by other players
 
 `404`: Game with identifier not found
 
