@@ -8,12 +8,10 @@ var game = require("../model/game"),
 
 var router = express.Router();
 
-// middleware specific to this router
-router.use(function timeLog(req, res, next) {
-     console.log('Time: ', Date.now());
-       next();
-})
 
+// **************************************************
+// JWT Processing
+// **************************************************
 
 var requireToken = function(next) {
    return function (req, res) {
@@ -53,22 +51,14 @@ var parseJWT = function (token, success, failed) {
    success(data);
 };
 
-// define the home page route
+
+// **************************************************
+// Routes
+// **************************************************
+
 router.get('/', function(req, res) {
-   res.send('Birds home page');
+   res.send('Welcome to the AI endpoint');
 })
-
-// define the about route
-router.get('/move', function(req, res) {
-   res.send('Move');
-})
-
-
-router.get('/dev-new-game', function (req, res) {
-   game.createGame(function (gameModel) {
-      sendReply(res, gameModel, []);
-   });
-});
 
 
 router.put('/join', requireToken( function (req, res) {
@@ -152,6 +142,21 @@ router.delete('/register', requireToken(function (req, res) {
 }));
 
 
+router.get('/board', requireToken(function (req, res) {
+   res.send('Board');
+}));
+
+
+router.get('/move', requireToken(function(req, res) {
+   res.send('Move');
+}));
+
+
+
+// **************************************************
+// Param validators
+// **************************************************
+
 // route middleware to validate :teamname
 router.param('teamname', function(req, res, next, teamname) {
    debug('validating teamname: ['+teamname+']');
@@ -173,51 +178,9 @@ router.param('teamname', function(req, res, next, teamname) {
 
 
 
-
-router.get('/board', function (req, res) {
-   var ident = null,
-       teamname = null;
-   if (req.body.token) {
-      var jwtData = jwt.decode(req.body.token);
-      ident = jwtData.ident;
-      teamname = jwtData.teamname;
-   }
-
-   game.fetchGame(ident, function(gameModel) {
-      if (gameModel) {
-         var jwtData = {
-            'ident': gameModel.ident
-         };
-         var pkg = {
-            'map': gameModel.board
-         };
-         sendReply(res, pkg, jwtData);
-      }else {
-         sendError(res, 400, 'no game with given identifier found');
-      }
-   });
-});
-
-var sendReply = function(res, payload, jwtData) {
-   var token = jwt.encode(jwtData, config.get('jwt.secret'))
-
-   res.jsonp({
-      'meta': {
-         'token': token
-      },
-      'payload': payload
-   });
-};
-
-var sendError = function (res, code, errorMsg) {
-   res.status(code).jsonp({
-      'meta': {
-         'error': code,
-         'reason': errorMsg
-      },
-      'payload': {}
-   });
-}
+// **************************************************
+// Helper functions
+// **************************************************
 
 var serverError = function (res, msg) {
    res.status(500).jsonp({
