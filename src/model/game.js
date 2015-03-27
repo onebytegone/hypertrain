@@ -157,14 +157,19 @@ Game.dbKey = function (ident, key) {
 Game.allGames = function(callback) {
    debug('starting listing all games');
 
-   redis.keys('*', function(err, replies) {
+   var self = this;
+   redis.keys(this.dbKey('*'), function(err, replies) {
       var gameList = [];
 
       if (replies) {
+         // Delete pending key
+         replies = _.reject(replies, function(item) {
+            return item === self.dbKey('pending');
+         });
+
          redis.mget(replies, function (err, reply) {
             var games = _.map(reply, function (item) {
                var game = JSON.parse(item);
-               debug(game);
 
                return {
                   'ident': game.ident,
