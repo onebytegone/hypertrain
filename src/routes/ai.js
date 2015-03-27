@@ -79,6 +79,10 @@ router.put('/join', requireToken( function (req, res) {
             gameModel = game.addPlayer(gameModel, req.jwt.ident);
             game.saveGame(gameModel);
 
+            if (game.isGameFull(gameModel)) {
+               game.startGame(gameModel);
+            }
+
             res.status(200).jsonp({
                meta: {
                   code: 200

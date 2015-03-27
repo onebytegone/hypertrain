@@ -85,6 +85,28 @@ Game.createGame = function(callback) {
    callback(gameModel);
 };
 
+
+/**
+ * Moves the game to the ready state. If it is marked
+ * as the pending game, this will remove that state.
+ *
+ * @param gameModel array
+ */
+Game.startGame = function(gameModel) {
+   debug('starting game: '+gameModel.ident);
+   var self = this;
+   this.fetchPendingGame(function (pendingIdent) {
+      if (pendingIdent === gameModel.ident) {
+         debug('removing pending game');
+         redis.del(self.dbKey('pending'));
+      };
+   });
+
+   gameModel.turn = 0;
+   this.saveGame(gameModel);
+};
+
+
 Game.saveGame = function(gameModel) {
    redis.set(this.dbKey(gameModel.ident), JSON.stringify(gameModel));
 };
@@ -98,7 +120,7 @@ Game.saveGame = function(gameModel) {
  * @param playerIdent string - id for the player
  */
 Game.addPlayer = function(gameModel, playerIdent) {
-   if (_.keys(gameModel.players).length+1 >= Game.config.maxPlayers) {
+   if (this.isGameFull(gameModel.players)) {
        throw new Error("Too many players for this game");
    }
 
@@ -110,6 +132,18 @@ Game.addPlayer = function(gameModel, playerIdent) {
    debug('player list: '+_.values(gameModel.players).join(', '));
 
    return gameModel;
+};
+
+
+/**
+ * Checks to see if the given game model has its max amount
+ * of players.
+ *
+ * @param gameModel array
+ * @return boolean
+ */
+Game.isGameFull = function(gameModel) {
+    return _.keys(gameModel.players).length >= Game.config.maxPlayers-1;
 };
 
 Game.generateIdentifier = function() {
