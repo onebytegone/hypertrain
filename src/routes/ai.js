@@ -1,6 +1,7 @@
 var express = require('express'),
     jwt = require("jwt-simple"),
     config = require("config"),
+    guid = require("../util/guid"),
     debug = require('debug')('ai');
 
 var game = require("../model/game"),
@@ -170,6 +171,27 @@ router.param('teamname', function(req, res, next, teamname) {
          meta: {
             code: 400,
             error: 'invalid teamname: ['+teamname+']'
+         },
+         payload: {}
+      });
+   }
+});
+
+
+// route middleware to validate :gameident
+router.param('gameident', function(req, res, next, gameident) {
+   debug('validating gameident: ['+gameident+']');
+
+   if (guid.validate(gameident)) {
+      req.gameident = gameident;
+      next();
+   }else {
+      debug('gameident ['+gameident+'] is not valid');
+
+      res.status(404).jsonp({
+         meta: {
+            code: 404,
+            error: 'game not found'
          },
          payload: {}
       });

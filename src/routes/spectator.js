@@ -2,6 +2,7 @@ var express = require('express'),
     jwt = require("jwt-simple"),
     config = require("config"),
     game = require("../model/game"),
+    guid = require("../util/guid"),
     debug = require('debug')('spectator');
 
 var router = express.Router();
@@ -28,7 +29,7 @@ router.get('/:gameident', function(req, res) {
 router.param('gameident', function(req, res, next, gameident) {
    debug('validating gameident: ['+gameident+']');
 
-   if (gameident.match(/[0-9a-z\-]+/gi)) {
+   if (guid.validate(gameident)) {
       req.gameident = gameident;
       next();
    }else {
