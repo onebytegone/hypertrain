@@ -146,6 +146,17 @@ Game.isGameFull = function(gameModel) {
     return _.keys(gameModel.players).length >= Game.config.maxPlayers-1;
 };
 
+
+/**
+ * Checks to see if the given game has been started
+ *
+ * @param gameModel array
+ * @return boolean
+ */
+Game.hasStarted = function(gameModel) {
+   return gameModel.turn >= 0;
+}
+
 Game.generateIdentifier = function() {
    return guid();
 };

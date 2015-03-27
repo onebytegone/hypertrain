@@ -143,8 +143,42 @@ router.delete('/register', requireToken(function (req, res) {
 }));
 
 
-router.get('/board', requireToken(function (req, res) {
-   res.send('Board');
+router.get('/board/:gameident', requireToken(function (req, res) {
+   game.fetchGame(req.params.gameident, function(gameModel) {
+      if (gameModel) {
+         if (game.hasStarted(gameModel)) {
+            res.jsonp({
+               meta: {
+                  code: 200
+               },
+               payload: {
+                  'ident': gameModel.ident,
+                  'players': gameModel.players,  //TODO: will need formatting
+                  'turn': gameModel.turn,
+                  'board': gameModel.board,
+                  'markers': game.config.markers,
+                  'date': gameModel.date
+               }
+            });
+         } else {
+            res.status(202).jsonp({
+               meta: {
+                  code: 202,
+                  error: 'game has not been started yet'
+               },
+               payload: {}
+            });
+         }
+      }else {
+         res.status(404).jsonp({
+            meta: {
+               code: 404,
+               error: 'Game with identifier not found'
+            },
+            payload: {}
+         });
+      }
+   });
 }));
 
 
