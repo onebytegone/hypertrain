@@ -233,6 +233,40 @@ router.param('gameident', function(req, res, next, gameident) {
 });
 
 
+// route middleware to validate :turn
+router.param('turn', function(req, res, next, turn) {
+   if (isNaN(turn)) {
+      res.status(422).jsonp({
+         meta: {
+            code: 422,
+            error: 'turn not valid'
+         },
+         payload: {}
+      });
+   }else {
+      next();
+   }
+});
+
+
+// route middleware to validate :direction
+router.param('direction', function(req, res, next, direction) {
+   var directions = ['left', 'right', 'forward'];
+
+   if (directions.indexOf(direction) == -1) {
+      res.status(422).jsonp({
+         meta: {
+            code: 422,
+            error: 'direction not valid'
+         },
+         payload: {}
+      });
+   }else {
+      next();
+   }
+});
+
+
 
 // **************************************************
 // Helper functions
